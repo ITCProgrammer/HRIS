@@ -25,7 +25,8 @@
                     <button class="btn btn-primary">Kirim ucapan melalui email</button>
                     <div class="row mt-3 mb-0">
                         @foreach ($employee_birthday_list as $employe)
-                            <input type="hidden" name="emails[]" value="{{ $employe->email_pribadi }}">
+                            <input type="hidden" name="emails[]"
+                                value="{{ $employe->email_pribadi }}/{{ $employe->nama }}/{{ $employe->age }}">
                             <div class="col-md-6 col-xl-3">
                                 <div class="card">
                                     <div class="card-body pb-0">

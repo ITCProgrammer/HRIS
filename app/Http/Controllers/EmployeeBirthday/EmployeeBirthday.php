@@ -8,13 +8,15 @@ use App\Models\Employe\Employe;
 use Exception;
 use Flasher\Toastr\Prime\ToastrFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EmployeeBirthday extends Controller
 {
     public function index()
     {
-        $employee_birthday_list =  Employe::select('nama', 'email_pribadi', 'dept')
+        $employee_birthday_list =  Employe::select('nama', 'email_pribadi', 'dept', DB::raw("DATEDIFF(YEAR, tgl_lahir, GETDATE()) AS age"))
             ->whereRaw("DATEPART(MM, tgl_lahir) = DATEPART(MM, GETDATE())")
             ->whereRaw("DATEPART(DAY, tgl_lahir) = DATEPART(DAY, GETDATE())")
             ->where('status_aktif', '!=', 0)
@@ -33,9 +35,19 @@ class EmployeeBirthday extends Controller
 
             $emails = $request->emails;
 
-            foreach ($emails as $email) {
-                Mail::to($email)
-                    ->send(new BirthdayEmail());
+            // Konversi array string menjadi array asosiatif
+            $email_array = array_map(function ($item) {
+                list($email, $name, $age) = explode('/', $item);
+                return [
+                    'email' => $email,
+                    'name' => $name,
+                    'age' => $age
+                ];
+            }, $emails);
+
+            foreach ($email_array as $email) {
+                Mail::to($email['email'])
+                    ->send(new BirthdayEmail($email['age'], $email['name']));
             }
 
             // Toast sukses

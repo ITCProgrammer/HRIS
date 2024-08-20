@@ -13,45 +13,36 @@ class BirthdayEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    protected $age;
+    protected $name;
+
+    public function __construct(string $age, string $name)
     {
-        //
+        $this->age = $age;
+        $this->name = $name;
     }
 
-    /**
-     * Get the message envelope.
-     *
-     * @return \Illuminate\Mail\Mailables\Envelope
-     */
+
     public function envelope()
     {
         return new Envelope(
-            subject: 'Birthday Email',
+            subject: 'Email Ulang Tahun',
         );
     }
 
-    /**
-     * Get the message content definition.
-     *
-     * @return \Illuminate\Mail\Mailables\Content
-     */
+
     public function content()
     {
         return new Content(
-            view: 'view.name',
+            view: 'emails.employee_birthday',
+            with: [
+                'name' => $this->name,
+                'age' => $this->age,
+            ],
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array
-     */
+
     public function attachments()
     {
         return [];
