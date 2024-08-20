@@ -96,7 +96,7 @@
                                                     <div class="d-inline-block  mb-sm-0 me-sm-1">
                                                         <div class="input-group">
                                                             <input type="text" name="datefilter" class="form-control"
-                                                                placeholder="--- Filter by Date ---" />
+                                                                placeholder="--- Filter by Tgl Masuk ---" />
                                                             <span class="input-group-text">
                                                                 <i class="fas fa-calendar-alt"></i>
                                                             </span>
@@ -157,6 +157,7 @@
                                                         <th>Nama</th>
                                                         <th>Departement</th>
                                                         <th>Tgl Masuk</th>
+                                                        <th>Tgl Akhir Evaluasi</th>
                                                         <th>Jabatan</th>
                                                     </tr>
                                                 </thead>
@@ -263,6 +264,10 @@
                         name: 'ftgl_masuk'
                     },
                     {
+                        data: 'ftgl_evaluasi',
+                        name: 'ftgl_evaluasi'
+                    },
+                    {
                         data: 'jabatan',
                         name: 'jabatan'
                     }
@@ -293,8 +298,6 @@
 
                 // Tampilkan atau sembunyikan tombol Kirim Email
                 toggleSendEmailButton();
-                // Log or process the checked items
-                console.log(checkedItems);
             });
 
 
@@ -343,14 +346,39 @@
             $('#export-excel').on('click', function(e) {
                 e.preventDefault(); // Mencegah reload halaman
 
-                // Buat URL dengan parameter query
-                let url = "{{ route('new-employe-export') }}";
-                url += `?from_date=${encodeURIComponent(start_date)}`;
-                url += `&to_date=${encodeURIComponent(end_date)}`;
-                url += `&department=${encodeURIComponent(department)}`;
+                $.ajax({
+                    url: "{{ route('new-employe-export') }}", // Ganti dengan route yang sesuai
+                    type: 'GET',
+                    data: {
+                        from_date: start_date,
+                        to_date: end_date,
+                        department: department
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response, status, xhr) {
+                        // Check for content-disposition header to get filename
+                        var disposition = xhr.getResponseHeader('Content-Disposition');
+                        var filename = /filename[^;=\n]*=(['"]([^'"]*)['"]|[^;\n]*)/.exec(
+                            disposition);
+                        filename = filename != null ? filename[2] : 'downloaded-file.xlsx';
 
-                // Arahkan browser ke URL untuk memulai unduhan
-                window.location.href = url;
+                        // Create a blob object and use it to create a download link
+                        var blob = new Blob([response], {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    },
+                    error: function(xhr) {
+                        console.log(xhr);
+                    }
+                });
             });
         });
     </script>
